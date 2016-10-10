@@ -1,0 +1,66 @@
+[
+  {
+    "name": "data-container",
+    "Image": "lukewendling/data-container:2",
+    "DockerFilePath": "",
+    "Hostname": "data-container",
+    "HostConfig": {
+      "Binds": [
+        "/downloads:/downloads"
+      ]
+    }
+  },{
+  "name": "mongo",
+  "Image": "jreeme/mongo:2.6",
+  "DockerFilePath": "",
+  "Hostname": "mongo",
+  "HostConfig": {
+    "VolumesFrom": [
+      "data-container"
+    ],
+    "PortBindings": {
+      "27017/tcp": [
+        {
+          "HostPort": "27017"
+        }
+      ]
+    }
+  }
+},
+  {
+    "name": "trained-models",
+    "Image": "sotera/trained-models:1",
+    "DockerFilePath": "",
+    "Hostname": "trained-models"
+  },
+  {
+    "name": "redis",
+    "Image": "sotera/redis-watchman:1",
+    "DockerFilePath": "",
+    "Hostname": "redis",
+    "HostConfig": {
+      "PortBindings": {
+        "6379/tcp": [
+          {
+            "HostPort": "6379"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "caffe",
+    "Image": "sotera/redis-watchman-cudnn5:1.0",
+    "DockerFilePath": "",
+    "Hostname": "caffe",
+    "HostConfig": {
+      "VolumesFrom": [
+        "data-container"
+      ],
+      "Links": [
+        "redis:redis"
+      ]
+    }
+  }
+]
+

@@ -16,7 +16,10 @@ class CaffeFeaturizer:
         self.model_path = os.getenv('CAFFE_MODEL_PATH', self.caffe_root + 'models/bvlc_reference_caffenet/')
         self.model = os.getenv('CAFFE_MODEL', 'bvlc_reference_caffenet.caffemodel')
 
-        caffe.set_mode_cpu()
+        if os.path.isfile("/proc/driver/nvidia/version"):
+            caffe.set_mode_gpu()
+        else:
+            caffe.set_mode_cpu()
         self.net = caffe.Net(self.model_path + 'deploy.prototxt', self.model_path + self.model, caffe.TEST)
         transformer = caffe.io.Transformer({'data': self.net.blobs['data'].data.shape})
         transformer.set_transpose('data', (2, 0, 1))

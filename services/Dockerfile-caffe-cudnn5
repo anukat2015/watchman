@@ -1,0 +1,164 @@
+#MUST BE BUILT FROM SERVICES DIRECTORY USING Firmament to take care of dependecies!!!! with -f flag
+#  e.g.:  cd watchman/services
+#         firmament m b -i deploy-cudnn5.json
+#
+#MUST BE BUILT on a system having NVidia driver support:
+#
+#   sudo apt-get install --no-install-recommends -y gcc make libc-dev
+#   wget -P /tmp http://us.download.nvidia.com/XFree86/Linux-x86_64/361.42/NVIDIA-Linux-x86_64-361.42.run
+#   sudo sh /tmp/NVIDIA-Linux-x86_64-361.42.run --silent
+#   wget -P /tmp https://github.com/NVIDIA/nvidia-docker/releases/download/v1.0.0-rc.3/nvidia-docker_1.0.0.rc.3-1_amd64.deb
+#   sudo dpkg -i /tmp/nvidia-docker*.deb && rm /tmp/nvidia-docker*.deb
+#   sudo dpkg -i cuda-repo-ubuntu1404-8-0-local_8.0.44-1_amd64.deb
+#   sudo apt-get update
+#   sudo apt-get install cuda
+#   sudo dpkg -i libcudnn5_5.1.5-1+cuda8.0_amd64.deb
+#   sudo dpkg -i libcudnn5-dev_5.1.5-1+cuda8.0_amd64.deb
+#
+#   See configure_gpu.sh for more details and:
+#   https://github.com/NVIDIA/nvidia-docker/wiki/Deploy-on-Amazon-EC2
+#   https://developer.nvidia.com/cuda-downloads
+
+FROM ubuntu:14.04
+
+USER root
+
+ENV TERM xterm
+
+# Install git, bc and dependencies
+RUN apt-get update --fix-missing && apt-get install -y \
+  wget \
+  bzip2 \
+  ca-certificates \
+  sudo \
+  git \
+  bc \
+  vim \
+  procps \
+  curl \
+  libglib2.0-0 \
+  libxext6 \
+  libsm6 \
+  libxrender1 \
+  libatlas-base-dev \
+  libatlas-dev \
+  libboost-all-dev \
+  libopencv-dev \
+  libprotobuf-dev \
+  libgoogle-glog-dev \
+  libgflags-dev \
+  protobuf-compiler \
+  libhdf5-dev \
+  libleveldb-dev \
+  liblmdb-dev \
+  libsnappy-dev \
+  htop
+
+# INSTALL NVidia Stuff  
+#
+
+# https://github.com/NVIDIA/nvidia-docker/blob/master/ubuntu-14.04/cuda/8.0/runtime/Dockerfile
+
+LABEL com.nvidia.volumes.needed="nvidia_driver"
+
+RUN NVIDIA_GPGKEY_SUM=d1be581509378368edeec8c1eb2958702feedf3bc3d17011adbf24efacce4ab5 && \
+    NVIDIA_GPGKEY_FPR=ae09fe4bbd223a84b2ccfce3f60f4b3d7fa2af80 && \
+    apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1404/x86_64/7fa2af80.pub && \
+    apt-key adv --export --no-emit-version -a $NVIDIA_GPGKEY_FPR | tail -n +2 > cudasign.pub && \
+    echo "$NVIDIA_GPGKEY_SUM  cudasign.pub" | sha256sum -c --strict - && rm cudasign.pub && \
+    echo "deb http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1404/x86_64 /" > /etc/apt/sources.list.d/cuda.list
+
+ENV CUDA_VERSION 8.0
+LABEL com.nvidia.cuda.version="8.0"
+
+ENV CUDA_PKG_VERSION 8-0=8.0.44-1
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        cuda-nvrtc-$CUDA_PKG_VERSION \
+        cuda-nvgraph-$CUDA_PKG_VERSION \
+        cuda-cusolver-$CUDA_PKG_VERSION \
+        cuda-cublas-$CUDA_PKG_VERSION \
+        cuda-cufft-$CUDA_PKG_VERSION \
+        cuda-curand-$CUDA_PKG_VERSION \
+        cuda-cusparse-$CUDA_PKG_VERSION \
+        cuda-npp-$CUDA_PKG_VERSION \
+        cuda-cudart-$CUDA_PKG_VERSION && \
+    ln -s cuda-$CUDA_VERSION /usr/local/cuda && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN echo "/usr/local/cuda/lib" >> /etc/ld.so.conf.d/cuda.conf && \
+    echo "/usr/local/cuda/lib64" >> /etc/ld.so.conf.d/cuda.conf && \
+    ldconfig
+
+RUN echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf && \
+    echo "/usr/local/nvidia/lib64" >> /etc/ld.so.conf.d/nvidia.conf
+
+ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:${PATH}
+ENV LD_LIBRARY_PATH /usr/local/nvidia/lib:/usr/local/nvidia/lib64:${LD_LIBRARY_PATH}
+
+# https://github.com/NVIDIA/nvidia-docker/blob/master/ubuntu-14.04/cuda/8.0/runtime/cudnn5/Dockerfile
+
+RUN apt-get update && apt-get install -y \
+        curl && \
+    rm -rf /var/lib/apt/lists/*
+
+ENV CUDNN_VERSION 5
+LABEL com.nvidia.cudnn.version="5"
+
+RUN CUDNN_DOWNLOAD_SUM=a87cb2df2e5e7cc0a05e266734e679ee1a2fadad6f06af82a76ed81a23b102c8 && \
+    curl -fsSL http://developer.download.nvidia.com/compute/redist/cudnn/v5.1/cudnn-8.0-linux-x64-v5.1.tgz -O && \
+    echo "$CUDNN_DOWNLOAD_SUM  cudnn-8.0-linux-x64-v5.1.tgz" | sha256sum -c --strict - && \
+    tar -xzf cudnn-8.0-linux-x64-v5.1.tgz -C /usr/local --wildcards 'cuda/lib64/libcudnn.so.*' && \
+    rm cudnn-8.0-linux-x64-v5.1.tgz && \
+    ldconfig
+
+#
+#  End of NVidia Stuff 
+  
+RUN echo 'export PATH=/opt/conda/bin:$PATH' > /etc/profile.d/conda.sh && \
+  wget --quiet --no-check-certificate https://repo.continuum.io/archive/Anaconda2-2.4.1-Linux-x86_64.sh && \
+  /bin/bash Anaconda2-2.4.1-Linux-x86_64.sh -b -p /opt/conda && \
+  rm Anaconda2-2.4.1-Linux-x86_64.sh
+
+ENV PATH /opt/conda/bin:$PATH
+ENV PYTHONPATH /home/caffe-user/caffe/python:$PYTHONPATH
+
+RUN conda install -c https://conda.anaconda.org/memex elasticsearch-py && \
+  conda install -c https://conda.anaconda.org/anaconda protobuf
+
+RUN useradd -ms /bin/bash caffe-user && echo "caffe-user:caffe-user" | chpasswd && adduser caffe-user sudo
+RUN chown -R caffe-user:caffe-user /usr/local
+
+# Clone Caffe repo and move into it
+RUN cd /home/caffe-user && git clone https://github.com/BVLC/caffe.git && cd caffe && \
+# just pull a preconfigured Makefile.config from our repo...cheating a little here
+  wget --quiet https://raw.githubusercontent.com/Sotera/social-sandbox/event_detection/firmament/caffe/Makefile.config && \
+# Make
+  make -j"$(nproc)" all
+
+# Make Python Wrapper
+RUN cd /home/caffe-user/caffe && \
+  make pycaffe && \
+  make distribute
+
+RUN cd /home/caffe-user/caffe/models/bvlc_reference_caffenet && \
+  wget --quiet http://dl.caffe.berkeleyvision.org/bvlc_reference_caffenet.caffemodel
+
+RUN mkdir /home/caffe-user/src
+RUN mkdir /home/caffe-user/src/util
+RUN mkdir /home/caffe-user/src/service
+WORKDIR /home/caffe-user/src/service
+
+COPY ./caffe-image-featurizer/*.py ./
+
+# match project dir structure to satisfy imports
+COPY ./util/ ../util/
+
+RUN chown -R caffe-user:caffe-user /home/caffe-user
+
+USER caffe-user
+
+ENV CAFFE_ROOT /home/caffe-user/caffe
+
+CMD ["python", "-u", "caffe_redis_client.py"]
+
+
