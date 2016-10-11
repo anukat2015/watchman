@@ -18,7 +18,7 @@
 #   See configure_gpu.sh for more details and:
 #   https://github.com/NVIDIA/nvidia-docker/wiki/Deploy-on-Amazon-EC2
 #   https://developer.nvidia.com/cuda-downloads
-
+    
 FROM ubuntu:14.04
 
 USER root
@@ -110,6 +110,10 @@ RUN CUDNN_DOWNLOAD_SUM=a87cb2df2e5e7cc0a05e266734e679ee1a2fadad6f06af82a76ed81a2
     tar -xzf cudnn-8.0-linux-x64-v5.1.tgz -C /usr/local --wildcards 'cuda/lib64/libcudnn.so.*' && \
     rm cudnn-8.0-linux-x64-v5.1.tgz && \
     ldconfig
+
+# This is needed to suppress "libdc1394 error: Failed to initialize libdc1394" scary warning on AMI
+# See https://groups.google.com/forum/#!topic/digits-users/uvQpHooD6WY
+RUN ln /dev/null /dev/raw1394
 
 #
 #  End of NVidia Stuff 
