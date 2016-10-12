@@ -1,21 +1,8 @@
 #MUST BE BUILT FROM SERVICES DIRECTORY USING Firmament to take care of dependecies!!!! with -f flag
 #  e.g.:  cd watchman/services
-#         docker build -f Dockerfile-caffe-cudnn5 -t sotera/redis-watchman-cudnn5:1.0 .
-#         # NOTE: tag "sotera/redis-watchman-cudnn5:1.0" is referenced below
 #         firmament m b -i deploy-cudnn5.json
 #
 #MUST BE BUILT on a system having NVidia driver support:
-#
-#   sudo apt-get install --no-install-recommends -y gcc make libc-dev
-#   wget -P /tmp http://us.download.nvidia.com/XFree86/Linux-x86_64/361.42/NVIDIA-Linux-x86_64-361.42.run
-#   sudo sh /tmp/NVIDIA-Linux-x86_64-361.42.run --silent
-#   wget -P /tmp https://github.com/NVIDIA/nvidia-docker/releases/download/v1.0.0-rc.3/nvidia-docker_1.0.0.rc.3-1_amd64.deb
-#   sudo dpkg -i /tmp/nvidia-docker*.deb && rm /tmp/nvidia-docker*.deb
-#   sudo dpkg -i cuda-repo-ubuntu1404-8-0-local_8.0.44-1_amd64.deb
-#   sudo apt-get update
-#   sudo apt-get install cuda
-#   sudo dpkg -i libcudnn5_5.1.5-1+cuda8.0_amd64.deb
-#   sudo dpkg -i libcudnn5-dev_5.1.5-1+cuda8.0_amd64.deb
 #
 #   See configure_gpu.sh for more details and:
 #   https://github.com/NVIDIA/nvidia-docker/wiki/Deploy-on-Amazon-EC2
@@ -56,6 +43,12 @@ RUN apt-get update --fix-missing && apt-get install -y \
   libsnappy-dev \
   htop
 
+COPY "NVIDIA-Linux-x86_64-367.57.run" .
+COPY "nvidia-docker_1.0.0.rc.3-1_amd64.deb" .
+COPY "cuda-repo-ubuntu1404-8-0-local_8.0.44-1_amd64.deb" .
+COPY "libcudnn5_5.1.5-1+cuda8.0_amd64.deb" .
+COPY "libcudnn5-dev_5.1.5-1+cuda8.0_amd64.deb" .
+  
 # INSTALL NVidia Stuff  
 # -- Pasted 3 DockerFiles maintained by NVidia
 
@@ -67,8 +60,7 @@ LABEL com.nvidia.volumes.needed="nvidia_driver"
 
 #<<
 # ADDED BY Kevin English
-RUN wget http://us.download.nvidia.com/XFree86/Linux-x86_64/367.48/NVIDIA-Linux-x86_64-367.48.run
-RUN sudo sh NVIDIA-Linux-x86_64-367.48.run --silent --no-kernel-module
+sudo sh "NVIDIA-Linux-x86_64-367.57.run" --ui=none --no-questions --accept-license --no-kernel-module
 #>>
 
 RUN NVIDIA_GPGKEY_SUM=d1be581509378368edeec8c1eb2958702feedf3bc3d17011adbf24efacce4ab5 && \
