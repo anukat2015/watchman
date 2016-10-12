@@ -1,5 +1,7 @@
 #MUST BE BUILT FROM SERVICES DIRECTORY USING Firmament to take care of dependecies!!!! with -f flag
 #  e.g.:  cd watchman/services
+#         docker build -f Dockerfile-caffe-cudnn5 -t sotera/redis-watchman-cudnn5:1.0 .
+#         #  NOTE: tag "sotera/redis-watchman-cudnn5:1.0" must tag reference later in this dockerfile
 #         firmament m b -i deploy-cudnn5.json
 #
 #MUST BE BUILT on a system having NVidia driver support:
