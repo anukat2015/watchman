@@ -44,10 +44,6 @@ RUN apt-get update --fix-missing && apt-get install -y \
   htop
 
 COPY "NVIDIA-Linux-x86_64-367.57.run" .
-COPY "nvidia-docker_1.0.0.rc.3-1_amd64.deb" .
-COPY "cuda-repo-ubuntu1404-8-0-local_8.0.44-1_amd64.deb" .
-COPY "libcudnn5_5.1.5-1+cuda8.0_amd64.deb" .
-COPY "libcudnn5-dev_5.1.5-1+cuda8.0_amd64.deb" .
   
 # INSTALL NVidia Stuff  
 # -- Pasted 3 DockerFiles maintained by NVidia
