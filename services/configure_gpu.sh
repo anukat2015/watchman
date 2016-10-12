@@ -1,11 +1,13 @@
 #!/bin/bash
 
 for TESTFOR in "cuda-repo-ubuntu1404-8-0-local_8.0.44-1_amd64.deb" "libcudnn5_5.1.5-1+cuda8.0_amd64.deb" "libcudnn5-dev_5.1.5-1+cuda8.0_amd64.deb"
-if [ ! -e $TESTFOR ]
-then
-    echo File '"'$TESTFOR'"' must be present in this directory
-    exit 5
-fi
+do
+    if [ ! -e $TESTFOR ]
+    then
+        echo File '"'$TESTFOR'"' must be present in this directory
+        exit 5
+    fi
+done
 
 # Reference:
 #   https://github.com/NVIDIA/nvidia-docker/wiki/Deploy-on-Amazon-EC2
