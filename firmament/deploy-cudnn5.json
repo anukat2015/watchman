@@ -59,7 +59,7 @@
       ],
       "Links": [
         "redis:redis"
-      ]
+      ],
       "Devices" : [
         { "PathOnHost": "/dev/nvidiactl", "PathInContainer": "/dev/nvidiactl", "CgroupPermissions": "mrw"},
         { "PathOnHost": "/dev/nvidia-uvm", "PathInContainer": "/dev/nvidia-uvm", "CgroupPermissions": "mrw"},
