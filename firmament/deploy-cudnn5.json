@@ -109,7 +109,7 @@
   },
   {
     "name": "caffe",
-    "Image": "sotera/redis-watchman-cudnn5:1.0",
+    "Image": "sotera/watchman-caffe-cudnn5:1.0",
     "DockerFilePath": "",
     "Hostname": "caffe",
     "HostConfig": {
