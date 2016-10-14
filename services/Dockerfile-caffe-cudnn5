@@ -1,7 +1,7 @@
 #MUST BE BUILT FROM SERVICES DIRECTORY USING Firmament to take care of dependecies!!!! with -f flag
 #  e.g.:  cd watchman/services
-#         docker build -f Dockerfile-caffe-cudnn5 -t sotera/caffe-cudnn5:1.0 .
-#         #  NOTE: tag "sotera/redis-watchman-cudnn5:1.0" must tag reference later in this dockerfile
+#         docker build -f Dockerfile-caffe-cudnn5 -t sotera/watchman-caffe-cudnn5:1.0 .
+#         #  NOTE: tag "sotera/watchman-caffe-cudnn5:1.0" must match tag reference deploy-cudnn5.json
 #         firmament m b -i deploy-cudnn5.json
 #
 #MUST BE BUILT on a system having NVidia driver support:
@@ -64,7 +64,7 @@ RUN cd /home/caffe-user && git clone https://github.com/BVLC/caffe.git && cd caf
 # just pull a preconfigured Makefile.config from our repo...cheating a little here
   wget --quiet https://raw.githubusercontent.com/Sotera/social-sandbox/event_detection/firmament/caffe/Makefile.config && \
 # Make
-  make -j"$(nproc)" all
+  make all
 
 # Make Python Wrapper
 RUN cd /home/caffe-user/caffe && \
