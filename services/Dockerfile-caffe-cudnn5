@@ -60,7 +60,7 @@ RUN useradd -ms /bin/bash caffe-user && echo "caffe-user:caffe-user" | chpasswd 
 RUN chown -R caffe-user:caffe-user /usr/local
 
 # Clone Caffe repo and move into it
-RUN cd /home/caffe-user && git clone https://github.com/BVLC/caffe.git && cd caffe && \
+RUN cd /home/caffe-user && git clone https://github.com/BVLC/caffe.git && cd caffe
 # just pull a preconfigured Makefile.config from our repo...cheating a little here
 RUN cd /home/caffe-user/caffe && wget --quiet https://raw.githubusercontent.com/Sotera/watchman/cudnn5/firmament/caffe/Makefile.config
 # Make
