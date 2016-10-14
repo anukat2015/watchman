@@ -64,7 +64,7 @@ RUN cd /home/caffe-user && git clone https://github.com/BVLC/caffe.git && cd caf
 # just pull a preconfigured Makefile.config from our repo...cheating a little here
 RUN cd /home/caffe-user/caffe && wget --quiet https://raw.githubusercontent.com/Sotera/watchman/cudnn5/firmament/caffe/Makefile.config
 # Make
-RUN make all
+RUN cd /home/caffe-user/caffe && make all
 
 # Make Python Wrapper
 RUN cd /home/caffe-user/caffe && \
