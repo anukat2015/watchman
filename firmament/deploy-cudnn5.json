@@ -109,7 +109,7 @@
   },
   {
     "name": "caffe",
-    "Image": "sotera/watchman-caffe-cudnn5:1.0",
+    "Image": "sotera/watchman-caffe-cudnn5:2.0",
     "DockerFilePath": "",
     "Hostname": "caffe",
     "HostConfig": {
