@@ -1,8 +1,9 @@
 #MUST BE BUILT FROM SERVICES DIRECTORY USING Firmament to take care of dependecies!!!! with -f flag
 #  e.g.:  cd watchman/services
-#         docker build -f Dockerfile-caffe-cudnn5 -t sotera/redis-watchman-cudnn5:1.0 .
-#         #  NOTE: tag "sotera/redis-watchman-cudnn5:1.0" must tag reference later in this dockerfile
-#         firmament m b -i deploy-cudnn5.json
+#         docker build -f Dockerfile-ubuntu-cudnn5 -t sotera/ubuntu-cudnn5:1.0 .
+#
+#  The file NVIDIA-Linux-x86_64-367.57.run should be copied into the current directory.
+#  This file can be obtained from NVidia or from one of our prior AMI Images
 #
 #MUST BE BUILT on a system having NVidia driver support:
 #
