@@ -13,11 +13,15 @@ function EventsCtrl($scope, AggregateCluster, Extract, Geocoder, SocialMediaPost
     visualizeEvent(evnt);
   };
 
+  $scope.eventChanged= function(evnt){
+    evnt.$save();
+  };
+
   function visualizeEvent(evnt) {
     AggregateCluster.find({
       filter: {
         where: {
-          id: { inq: evnt.aggregate_clusters }
+          id: { inq: evnt.aggregate_cluster_ids }
         }
       }
     }).$promise
