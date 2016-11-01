@@ -1,0 +1,31 @@
+{
+  "name": "event",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "start_time_ms": {
+      "type": "number",
+      "required": true
+    },
+    "end_time_ms": {
+      "type": "number",
+      "required": true
+    },
+    "aggregate_cluster_ids": {
+      "type": [
+        "string"
+      ],
+      "required": true
+    },
+    "name": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}
