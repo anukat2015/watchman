@@ -3,7 +3,7 @@
 // def: Parse a social media page's content to find the user-submitted image
 // and download it for processing. Assumes image is jpeg format.
 
-const tr = require('trumpet')(),
+const trumpet = require('trumpet'),
   request = require('request'),
   fs = require('fs'),
   mkdirp = require('mkdirp'),
@@ -16,6 +16,8 @@ module.exports = { fetchImage };
 
 // callback: function(err, data)
 function fetchImage(url, downloadPath, callback) {
+  const tr = trumpet();
+
   downloadPath = downloadPath || '.'; // default to cwd
   mkdirp(downloadPath);
 

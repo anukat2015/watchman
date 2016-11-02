@@ -71,9 +71,11 @@ function updateJob(key, job) {
 }
 
 if (require.main === module) {
-  // let testKey = 'genie:1'
-  // pub.hmsetAsync(testKey, { urls: 'https://www.swarmapp.com/c/8Ez3xo3RtcP' })
-  //   .then(() => {
-  //     pub.publishAsync('genie:fetch_image', testKey)
-  //   })
+  // for (let i=0; i<100; i++) {
+  //   let testKey = 'genie:' + i
+  //   pub.hmsetAsync(testKey, { urls: 'https://www.instagram.com/p/BJsmWmLDiD3/' })
+  //     .then(() => {
+  //       pub.publishAsync(channelName, testKey)
+  //     })
+  // }
 }
