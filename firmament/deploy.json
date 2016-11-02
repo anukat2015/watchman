@@ -126,10 +126,10 @@
     }
   },
   {
-    "name": "image-fetcher",
-    "Image": "sotera/image-fetcher:1",
+    "name": "image-fetcher-async",
+    "Image": "sotera/image-fetcher-async:1",
     "DockerFilePath": "",
-    "Hostname": "image-fetcher",
+    "Hostname": "image-fetcher-async",
     "HostConfig": {
       "VolumesFrom": [
         "data-container"
