@@ -1,4 +1,4 @@
-import community, uuid, sys, os
+import community, sys, os
 import networkx as nx
 from random import sample
 sys.path.append(os.path.join(os.path.dirname(__file__), "../util"))
@@ -67,7 +67,7 @@ class Louvaine:
         if n_posts > 10:
             l_sample = sample(cluster['similar_post_ids'], 10)
 
-        imgs = []
+        imgs = set([])
 
         #TODO: fix query type once S.L. is fixed
         for id in l_sample:
@@ -82,10 +82,10 @@ class Louvaine:
             for doc in page:
                 if doc['featurizer'] != "image":
                     continue
-                imgs.append(doc['primary_image_url'])
+                imgs.add(doc['primary_image_url'])
                 break
 
-        return imgs
+        return list(imgs)
 
 
     def get_communities(self):
@@ -95,25 +95,26 @@ class Louvaine:
             com = str(partition[n])
             clust = self.nodes_detailed[n]
             if com in d1:
-                d1[com]['clusts'].append(n)
+                d1[com]['aggregate_cluster_ids'].append(n)
                 d1[com]['topicMessageCount'] += len(clust['similar_post_ids'])
 
             else:
-                d1[com] = {'uid':uuid.uuid4(),
+                d1[com] = {
+                    'name': 'default',
                     'start_time_ms': clust['start_time_ms'],
                     'end_time_ms':clust['end_time_ms'],
-                    'clusts':[n],
+                    'aggregate_cluster_ids':[n],
                     'hashtags':{},
                     'keywords':{},
                     'urls':[],
-                    'photos':[],
+                    'image_urls':[],
                     'importanceScore':1.0,
                     'topicMessageCount':len(clust['similar_post_ids'])}
 
             if clust['data_type'] == 'hashtag':
                 d1[com]['hashtags'][clust['term']] = len(clust['similar_post_ids'])
             elif clust['data_type'] == 'image':
-                d1[com]['photos'].extend(self.get_img_sum(clust))
+                d1[com]['image_urls'].extend(self.get_img_sum(clust))
             elif clust['data_type'] == 'text':
                 word_sum = self.get_text_sum(clust)
                 for k, v in word_sum.iteritems():
@@ -125,5 +126,19 @@ class Louvaine:
                 d1[com]['start_time_ms'] = clust['start_time_ms']
             if clust['end_time_ms'] > d1[com]['end_time_ms']:
                 d1[com]['end_time_ms'] = clust['end_time_ms']
+
+
+        for com in d1.keys():
+            l_tags = map(lambda x: x[0], sorted([(k, v) for k, v in d1[com]['hashtags']], key=lambda x: x[1]))
+            if len(l_tags) > 10:
+                d1[com]['hashtags'] = l_tags[:10]
+            else:
+                d1[com]['hashtags'] = l_tags
+
+            l_terms = map(lambda x: x[0], sorted([(k, v) for k, v in d1[com]['keywords']], key=lambda x: x[1]))
+            if len(l_terms) > 10:
+                d1[com]['keywords'] = l_terms[:10]
+            else:
+                d1[com]['keywords'] = l_terms
 
         return d1
