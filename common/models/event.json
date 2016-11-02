@@ -22,6 +22,37 @@
     },
     "name": {
       "type": "string"
+    },
+    "hashtags": {
+      "type": [
+        "string"
+      ]
+    },
+    "keywords": {
+      "type": [
+        "string"
+      ]
+    },
+    "urls": {
+      "type": [
+        "string"
+      ]
+    },
+    "image_urls": {
+      "type": [
+        "string"
+      ]
+    },
+    "importance_score": {
+      "type": "number"
+    },
+    "topic_message_count": {
+      "type": "number"
+    },
+    "location": {
+      "type": [
+        "object"
+      ]
     }
   },
   "validations": [],
