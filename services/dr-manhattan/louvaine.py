@@ -206,6 +206,6 @@ class Louvaine:
         for com in d1.values():
             if len(com['aggregate_cluster_ids'])<3:
                 continue
-            res = requests.post(self.url+'events', data=com)
+            res = requests.post(self.url+'events', json=com)
             print res
 
