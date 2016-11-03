@@ -200,3 +200,12 @@ class Louvaine:
 
 
         return d1
+
+    def save_communities(self):
+        d1 = self.get_communities()
+        for com in d1.values():
+            if len(com['aggregate_cluster_ids'])<3:
+                continue
+            res = requests.post(self.url+'events', data=com)
+            print res
+
