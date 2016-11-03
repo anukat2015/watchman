@@ -46,9 +46,10 @@ function extract(feedObject) {
 }
 
 function eventize(feedObject) {
-  // TODO: abstract flickr specifics
+  // TODO: abstract flickr specifics.
+  // currently assumes flickr public stream input for images.
   var extractType = _.capitalize(feedObject.extractType);
-  if (extractType === 'Neuraltalk2') { // images
+  if (/neuraltalk/i.test(extractType)) { // caption images
     // photo id is part of guid
     var photoId = /[0-9]+$/.exec(feedObject.guid)[0];
     return entityExtractor.eventizeWithNeuralTalk2(
