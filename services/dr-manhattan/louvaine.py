@@ -3,7 +3,6 @@ import networkx as nx
 from random import sample
 sys.path.append(os.path.join(os.path.dirname(__file__), "../util"))
 from loopy import Loopy
-sys.path.append(os.path.join(os.path.dirname(__file__), "../rorschach/util"))
 from sentiment_filters import SentimentFilter
 
 class Louvaine:

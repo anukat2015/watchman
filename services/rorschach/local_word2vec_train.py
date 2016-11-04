@@ -5,7 +5,7 @@ from math import log
 import matplotlib.pyplot as plt
 #from sklearn.feature_extraction.text import TfidfVectorizer
 from gensim.models import Word2Vec
-sys.path.append(os.path.join(os.path.dirname(__file__), "./util"))
+sys.path.append(os.path.join(os.path.dirname(__file__), "../util"))
 from sentiment_filters import SentimentFilter
 
 def vec_from_tweet(model, l_txt, dimensions, s_words, d_idf):
