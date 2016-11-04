@@ -250,6 +250,7 @@
         "StrongLoopBranchName": "deploy",
         "StrongLoopServerUrl": "http://localhost:8702",
         "ServiceName": "watchman",
+        "ClusterSize": 1,
         "DoBowerInstall": false,
         "EnvironmentVariables": {
           "PORT": 3002,
