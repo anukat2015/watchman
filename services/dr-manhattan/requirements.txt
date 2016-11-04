@@ -1,4 +1,4 @@
 requests
 networkx
-community
+python-louvain
 polyglot
