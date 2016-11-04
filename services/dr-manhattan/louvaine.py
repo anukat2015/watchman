@@ -126,8 +126,8 @@ class Louvaine:
                     'urls':set([]),
                     'image_urls':[],
                     'location':{},
-                    'importanceScore':1.0,
-                    'topicMessageCount':len(clust['similar_post_ids'])}
+                    'importance_score':1.0,
+                    'topic_message_count':len(clust['similar_post_ids'])}
 
             #Expand Summary data (hashtags, keywords, images, urls, geo)
             if clust['data_type'] == 'hashtag':
