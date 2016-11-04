@@ -112,7 +112,7 @@ class Louvaine:
             clust = self.nodes_detailed[n]
             if com in d1:
                 d1[com]['aggregate_cluster_ids'].append(n)
-                d1[com]['topicMessageCount'] += len(clust['similar_post_ids'])
+                d1[com]['topic_message_count'] += len(clust['similar_post_ids'])
 
             else:
                 d1[com] = {
