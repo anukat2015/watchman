@@ -70,7 +70,13 @@ module.exports = function(Qcr) {
     // if nil text, hashtags, and images just forget about it.
     Promise.all(createActions)
     .then(() => cb(null, attrs)) // echo input
-    .catch(cb);
+    .catch(err => {
+      // QCR re-sends tweets on 5xx (server error) http response codes.
+      // b/c they send lots of dupe tweets, we get mongo uniq idx failures.
+      // ignore them.
+      console.error('QCR err:', err);
+      cb(null, {ok: 1}); // send bogus 200 response
+    });
   }
 
 };
