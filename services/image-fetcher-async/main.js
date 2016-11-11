@@ -22,7 +22,7 @@ sub
     console.info(`subscribed to channel ${channel}`);
   })
   .on('message', (channel, msg) => {
-    // console.log(msg)
+    // console.info('message received:', msg);
     let key = msg;
     pub.hgetallAsync(key)
       .then(processJob(key));
@@ -67,11 +67,11 @@ function afterFetch(key, job) {
 
 function updateJob(key, job) {
   pub.hmsetAsync(key, job)
-    .then(() => console.info(`job ${key} updated`));
+    .then(() => console.info(`job ${key} updated`, job));
 }
 
 if (require.main === module) {
-  // for (let i=0; i<100; i++) {
+  // for (let i=0; i<1000; i++) {
   //   let testKey = 'genie:' + i
   //   pub.hmsetAsync(testKey, { urls: 'https://www.instagram.com/p/BJsmWmLDiD3/' })
   //     .then(() => {
