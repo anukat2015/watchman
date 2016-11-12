@@ -2,6 +2,8 @@
 
 // def: Parse a social media page's content to find the user-submitted image
 // and download it for processing. Assumes image is jpeg format.
+// returns custom exceptions so caller can distinguish between expected
+  // problems like timeouts, unspecified domains, and unexpected errors.
 
 const trumpet = require('trumpet'),
   request = require('request'),
@@ -13,11 +15,7 @@ const trumpet = require('trumpet'),
   FetchException = require('./fetch-exception'),
   requestOptions = {
     timeout: 5000, //ms
-    followRedirect: true,
-    forever: true,
-    // headers: {
-    // 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11'
-    // }
+    maxRedirects: 2
   };
 
 // require('request').debug = true
@@ -27,18 +25,25 @@ module.exports = { fetchImage };
 // callback: function(err, data)
 function fetchImage(url, downloadPath, callback) {
   const tr = trumpet();
+  let match = false;
 
   downloadPath = downloadPath || '.'; // default to cwd
   mkdirp(downloadPath);
 
+  // 1) Set up html parser + attach pipes:
   // outer: for a non-enclosing tag like meta.
   // twitter & instagram use FB open graph tags.
   tr.createReadStream('meta[property="og:image"]', {outer: true})
-  // .on('data', (a,b,c) => {
-  //   debugger
-  // })
-  .on('error', (e,i) => {
-    debugger
+  .on('end', () => {
+    // trumpet stops piping when no matches. ugh.
+    // HACK: 'data' handler checks for selector success.
+    // TODO: better way to return 'no matches'?
+    if (!match)
+      callback(new FetchException('could not find image info'));
+  })
+  .on('data', data => {
+    let line = data.toString();
+    match = /og:image/i.test(line);
   })
   .pipe(findImageUrl()).on('error', callback)
   .pipe(downloadImage(downloadPath)).on('error', callback)
@@ -46,34 +51,24 @@ function fetchImage(url, downloadPath, callback) {
   // continue processing if you like...
   // .pipe(process.stdout);
 
+  // 2) Start the pipeline
   require('request').get(url, requestOptions)
-  // .on('data', (a,b,c) => {
-  //   debugger
-  // })
-  // .on('response', function(res) {
-  //   debugger
-  //   if (res.statusCode > 399)
-  //     callback(new FetchException(`failure response ${res.statusCode}`));
-  // })
-  .on('error', callback)
-  // .on('end', console.log)
+  .on('response', function(res) {
+    if (res.statusCode > 399)
+      callback(new FetchException(`statuscode ${res.statusCode} for ${url}`));
+  })
+  .on('error', err => {
+    console.error('get url err:', err);
+    callback(new FetchException(`failed to get ${url}`));
+  })
   .pipe(tr);
-}
-
-// invoke consumer's callback. also continue pipelining...
-function consume(callback) {
-  return through2((chunk, enc, next) => {
-    callback(null, chunk.toString());
-    // next(null, chunk.toString()); // if we add another step later
-  });
 }
 
 function findImageUrl() {
   return through2((chunk, enc, cb) => {
-    debugger
     let data = chunk.toString(); // from buffer
     if (!/instagram\.com/i.test(data) && !/twitter\.com/i.test(data)) {
-      cb(new FetchException('invalid image source'));
+      cb(new FetchException(`skipping ${data}`));
       return;
     }
 
@@ -92,31 +87,48 @@ function findImageUrl() {
 
 function downloadImage(downloadPath) {
   // all downloads expected to be jpeg format
-  let imagePath = path.join(downloadPath, uuid.v4() + '.jpg'),
-    ws = fs.createWriteStream(imagePath);
+  let imagePath = path.join(downloadPath, uuid.v4() + '.jpg');
 
   return through2((chunk, enc, cb) => {
-    let imageUrl = chunk.toString();
-    // TODO: what happens when request fails?
-    console.log(imageUrl);
+    let imageUrl = chunk.toString(),
+      ws = fs.createWriteStream(imagePath);
     require('request').get(imageUrl, requestOptions)
     .on('response', function(res) {
       if (res.statusCode > 399)
-        cb(new FetchException(`failure response ${res.statusCode}`));
+        cb(new FetchException(`statuscode ${res.statusCode} for ${imageUrl}`));
     })
-    .on('error', cb)
+    .on('error', err => {
+      console.error('download err:', err);
+      // del empty files
+      // fs.unlinkSync(imagePath);
+      cb(new FetchException(`failed to download ${imageUrl}`));
+    })
+    .on('end', () => {
+      // del empty files
+      let stats = fs.statSync(imagePath);
+      if (!stats.size)
+        fs.unlinkSync(imagePath);
+      let output = {
+        path: imagePath,
+        url: imageUrl
+      };
+      cb(null, JSON.stringify(output));
+    })
     .pipe(ws);
-    let output = {
-      path: imagePath,
-      url: imageUrl
-    };
-    cb(null, JSON.stringify(output));
+  });
+}
+
+// invoke consumer's callback. also continue piping...
+function consume(callback) {
+  return through2((chunk, enc, next) => {
+    callback(null, chunk.toString());
+    next(null, chunk.toString()); // if we add another step later
   });
 }
 
 if (require.main === module) {
-  // fetchImage('https://www.instagram.com/p/BJsmWmLDiD3/', './tmp', console.log)
-  fetchImage('https://www.facebook.com/photo.php?fbid=10157557232495468', './tmp', console.log)
+  fetchImage('https://www.instagram.com/p/BJsmWmLDiD3/', './tmp', console.log)
+  // fetchImage('https://www.facebook.com/photo.php?fbid=10157557232495468', './tmp', console.log)
   // fetchImage('https://twitter.com/Abizy_m/status/775762443817607170')
   // fetchImage('https://www.swarmapp.com/c/8Ez3xo3RtcP')
 }
