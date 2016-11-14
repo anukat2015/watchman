@@ -1,25 +1,21 @@
 {
-  "name": "aggregateCluster",
+  "name": "event",
   "base": "PersistedModel",
   "idInjection": true,
   "indexes": {
+    "idx_start_time_ms": {
+      "keys": {
+        "start_time_ms": 1
+      }
+    },
     "idx_end_time_ms": {
       "keys": {
         "end_time_ms": 1
-      }
-    },
-    "idx_state": {
-      "keys": {
-        "state": 1
       }
     }
   },
   "options": {
     "validateUpsert": true
-  },
-  "mixins": {
-    "Timestamp": {},
-    "DestroyAll": {}
   },
   "properties": {
     "start_time_ms": {
@@ -30,35 +26,44 @@
       "type": "number",
       "required": true
     },
-    "data_type": {
-      "type": "string",
-      "required": true,
-      "description": "equal to jobMonitor.featurizer. added for convenience."
-    },
-    "lang": {
-      "type": "string"
-    },
-    "state": {
-      "type": "string",
-      "required": true,
-      "default": "open"
-    },
-    "term": {
-      "type": "string"
-    },
-    "average_similarity_vector": {
+    "aggregate_cluster_ids": {
       "type": [
-        "number"
-      ]
+        "string"
+      ],
+      "required": true
     },
-    "posts_clusters_ids": {
+    "name": {
+      "type": "string"
+    },
+    "hashtags": {
       "type": [
         "string"
       ]
     },
-    "similar_post_ids": {
+    "keywords": {
       "type": [
         "string"
+      ]
+    },
+    "urls": {
+      "type": [
+        "string"
+      ]
+    },
+    "image_urls": {
+      "type": [
+        "string"
+      ]
+    },
+    "importance_score": {
+      "type": "number"
+    },
+    "topic_message_count": {
+      "type": "number"
+    },
+    "location": {
+      "type": [
+        "object"
       ]
     }
   },

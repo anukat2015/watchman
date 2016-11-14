@@ -1,7 +1,6 @@
 import sys, os, argparse
 from syntax_similarity import SyntaxVectorizer
 sys.path.append(os.path.join(os.path.dirname(__file__), "../util"))
-sys.path.append(os.path.join(os.path.dirname(__file__), "./util"))
 from redis_dispatcher import Dispatcher
 from sentiment_filters import SentimentFilter
 
@@ -58,7 +57,7 @@ if __name__ == '__main__':
     sent_filt = SentimentFilter()
     global syntax_vectorizer
     syntax_vectorizer = {}
-    
+
     if args.englishModel != '':
         syntax_vectorizer['en'] = SyntaxVectorizer(args.modelPath, args.englishModel)
     if args.arabicModel != '':

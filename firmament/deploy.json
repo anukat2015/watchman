@@ -206,7 +206,7 @@
           "PORT": 3001,
           "NODE_ENV": "production",
           "API_ROOT": "http://172.17.0.1:3003/api",
-          "IGNORE_QCR": 1
+          "IGNORE_QCR": 0
         },
         "Scripts": [
         ]
@@ -250,6 +250,7 @@
         "StrongLoopBranchName": "deploy",
         "StrongLoopServerUrl": "http://localhost:8702",
         "ServiceName": "watchman",
+        "ClusterSize": 1,
         "DoBowerInstall": false,
         "EnvironmentVariables": {
           "PORT": 3002,

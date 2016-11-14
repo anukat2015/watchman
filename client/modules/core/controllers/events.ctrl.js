@@ -7,17 +7,23 @@ function EventsCtrl($scope, AggregateCluster, Extract, Geocoder, SocialMediaPost
   $scope.clusterTerm = '';
   $scope.events = null;
   $scope.selectedEvents = null;
+  $scope.selectedEvent=null;
   // obj: represents a cluster but not a loopback model
 
   $scope.eventSelected = function(evnt){
     visualizeEvent(evnt);
   };
 
+  $scope.eventChanged= function(evnt){
+    evnt.$save();
+  };
+
   function visualizeEvent(evnt) {
+    $scope.selectedEvent = evnt;
     AggregateCluster.find({
       filter: {
         where: {
-          id: { inq: evnt.aggregate_clusters }
+          id: { inq: evnt.aggregate_cluster_ids }
         }
       }
     }).$promise
@@ -62,17 +68,6 @@ function EventsCtrl($scope, AggregateCluster, Extract, Geocoder, SocialMediaPost
    // 'visualize': show me the details
   $scope.visualize = visualize;
 
-  function getWords(words) {
-
-
-    words = words.replace(/#\S+/g, ' ');
-    words = words.replace(/@\S+/g, ' ');
-    words = words.replace(/\s+/g,' ').trim();
-
-    return words.replace(/[!\.,:;\?]/g, ' ');
-
-  }
-
   function visualize(clusters) {
     if (!_.isArray(clusters)) clusters = [clusters];
 
@@ -108,71 +103,24 @@ function EventsCtrl($scope, AggregateCluster, Extract, Geocoder, SocialMediaPost
       },
 
       forMap(){
-        sampleSocialMediaPosts('text')
-          .then(posts => {
-            return posts.map(p => p.text).join(' ');
+        let features = {};
+        $scope.selectedEvent.location.forEach(function(location){
+          if(location.geo_type !== "point"){
+            return;
+          }
 
-          })
-          .then(text=>{
-            var blob = getWords(text);
-            Extract.entities({"text": blob,
-              "mime_type": "text/html",
-              "extract_type": "mitie"})
-              .$promise
-              .then(entities=>{
-                return entities.filter(function(entity){ return entity.label.length >2&&entity.tag==="LOCATION"&&entity.score>=.7});
-              })
-              .then(locations=>{
-                let finished = 0;
-                let features = {};
-                if(locations.length ==0){
-                  $scope.eventPoints = features;
-                  return;
-                }
-                locations.forEach(function(location){
-                  Geocoder.forwardGeo({"address": location.label})
-                    .$promise
-                    .then(geo=>{
-                      finished++;
-                      if(geo.length > 0) {
-                        features[location.label] = { lat: geo[0].latitude, lng: geo[0].longitude, message: location.label, focus: true, draggable: false };
-                      }
-                      if(finished === locations.length){
-                        $scope.eventPoints = features;
-                      }
-                    });
-
-                });
-              });
-          })
-          .catch(console.error);
+          features[location.label] = { lat: location.coords[0].lat, lng: location.coords[0].lng, message: location.label, focus: true, draggable: false };
+        });
+        $scope.eventPoints = features;
       },
 
       forHashtags() {
-        let terms = _(clusters).map('term')
-          .flatten().compact().value().join(', ');
-
-        $scope.clusterTerm = terms;
+        $scope.clusterTerm = $scope.selectedEvent.hashtags.join(', ');
       },
 
       forImages() {
         $scope.showSpinner = true;
-
-        sampleSocialMediaPosts('image', 200)
-          .then(posts => {
-            let imageUrls = _(posts).map('primary_image_url')
-              .compact().uniq().value();
-
-            if (imageUrls.length) {
-              $scope.imageUrls = imageUrls;
-            } else {
-              $scope.imageUrls = null;
-              console.info('no similar_image_urls');
-            }
-
-            $scope.showSpinner = false;
-          })
-          .catch(console.error);
+        $scope.imageUrls = $scope.selectedEvent.image_urls;
       },
 
       forAll() {
