@@ -24,10 +24,14 @@ module.exports = { fetchImage };
 
 // callback: function(err, data)
 function fetchImage(url, downloadPath, callback) {
+  if (!validUrl(url)) {
+    return callback(new FetchException(`skipping ${url}`));
+  }
+
   const tr = trumpet();
   let match = false;
 
-  downloadPath = downloadPath || '.'; // default to cwd
+  downloadPath = downloadPath || '.';
   mkdirp(downloadPath);
 
   // 1) Set up html parser + attach pipes:
@@ -45,11 +49,13 @@ function fetchImage(url, downloadPath, callback) {
     let line = data.toString();
     match = /og:image/i.test(line);
   })
-  .pipe(findImageUrl()).on('error', callback)
-  .pipe(downloadImage(downloadPath)).on('error', callback)
-  .pipe(consume(callback))
-  // continue processing if you like...
-  // .pipe(process.stdout);
+  .pipe(findImageUrl())
+    .on('error', callback)
+  .pipe(downloadImage(downloadPath))
+    .on('error', callback)
+    .on('data', data => {
+      callback(null, data.toString());
+    });
 
   // 2) Start the pipeline
   require('request').get(url, requestOptions)
@@ -66,13 +72,8 @@ function fetchImage(url, downloadPath, callback) {
 
 function findImageUrl() {
   return through2((chunk, enc, cb) => {
-    let data = chunk.toString(); // from buffer
-    if (!/instagram\.com/i.test(data) && !/twitter\.com/i.test(data)) {
-      cb(new FetchException(`skipping ${data}`));
-      return;
-    }
-
-    let matches = data.match(/(http.*)"/i);
+    let content = chunk.toString(); // from buffer
+    let matches = content.match(/(http.*)"/i);
 
     if (matches) {
       let url = matches[1];
@@ -83,6 +84,11 @@ function findImageUrl() {
       cb(new FetchException('image url not found'));
     }
   });
+}
+
+function validUrl(url) {
+  return /instagram\.com/i.test(url) ||
+  /twitter\.com/i.test(url)
 }
 
 function downloadImage(downloadPath) {
@@ -100,35 +106,31 @@ function downloadImage(downloadPath) {
     .on('error', err => {
       console.error('download err:', err);
       // del empty files
-      // fs.unlinkSync(imagePath);
+      fs.unlinkSync(imagePath);
       cb(new FetchException(`failed to download ${imageUrl}`));
     })
     .on('end', () => {
-      // del empty files
-      let stats = fs.statSync(imagePath);
-      if (!stats.size)
-        fs.unlinkSync(imagePath);
-      let output = {
-        path: imagePath,
-        url: imageUrl
-      };
-      cb(null, JSON.stringify(output));
+      try { // seems that request errors still emit 'end'. so file might not exist.
+        // del empty files
+        let stats = fs.statSync(imagePath);
+        if (!stats.size)
+          fs.unlinkSync(imagePath);
+        let output = {
+          path: imagePath,
+          url: imageUrl
+        };
+        cb(null, JSON.stringify(output));
+      } catch(e) {
+        cb(e);
+      }
     })
     .pipe(ws);
   });
 }
 
-// invoke consumer's callback. also continue piping...
-function consume(callback) {
-  return through2((chunk, enc, next) => {
-    callback(null, chunk.toString());
-    next(null, chunk.toString()); // if we add another step later
-  });
-}
-
 if (require.main === module) {
-  fetchImage('https://www.instagram.com/p/BJsmWmLDiD3/', './tmp', console.log)
+  // fetchImage('https://www.instagram.com/p/BJsmWmLDiD3/', './tmp', console.log)
   // fetchImage('https://www.facebook.com/photo.php?fbid=10157557232495468', './tmp', console.log)
-  // fetchImage('https://twitter.com/Abizy_m/status/775762443817607170')
+  fetchImage('https://twitter.com/Abizy_m/status/775762443817607170', './tmp', console.log)
   // fetchImage('https://www.swarmapp.com/c/8Ez3xo3RtcP')
 }

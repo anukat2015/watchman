@@ -39,7 +39,7 @@ function processJob(key) {
       updateJob(key, job);
       return;
     }
-    fetchImage(job.urls, './tmp', afterFetch(key, job));
+    fetchImage(job.urls, '/downloads/image-fetcher', afterFetch(key, job));
   }
 }
 

@@ -20,4 +20,6 @@ COPY $SERVICE/$MAIN docker-main.js
 
 RUN npm i
 
-CMD ["node", "."]
+# increase GC limit since we will likely process
+# many relatively large files concurrently.
+CMD ["node", "--max_old_space_size=4096", "."]
