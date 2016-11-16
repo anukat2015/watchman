@@ -5,6 +5,10 @@
   "options": {
     "validateUpsert": true
   },
+  "mixins": {
+    "DestroyAll": {},
+    "Timestamp": {}
+  },
   "properties": {
     "lat": {
       "type": "number"
@@ -42,11 +46,6 @@
       "type": "boolean",
       "required": true,
       "default": false
-    },
-    "created": {
-      "type": "date",
-      "required": true,
-      "defaultFn": "now"
     }
   },
   "validations": [],

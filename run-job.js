@@ -23,15 +23,22 @@ module.exports = runJob;
 // start if run as a worker process
 if (require.main === module) {
   const defaults = {
-    seedTime: 1477679223000,
-    runIntervalMins: 60,
-    querySpanMins: 45,
+    seedTime: 1478296649899,
+    runIntervalMins: 10,
+    querySpanMins: 10,
     minPostsCount: 0
   };
 
   //english
   runJob(Object.assign({
+    service_args: { similarity_threshold: 0.65 },
     lang: 'en',
+    featurizer: 'text'
+  }, defaults));
+  //ar
+  runJob(Object.assign({
+    service_args: { similarity_threshold: 0.65 },
+    lang: 'ar',
     featurizer: 'text'
   }, defaults));
   //hashtags

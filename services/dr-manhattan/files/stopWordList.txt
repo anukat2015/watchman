@@ -1342,6 +1342,8 @@ hopefully
 how
 howbeit
 however
+https
+http
 i
 id
 ill
@@ -2482,6 +2484,7 @@ resulting
 results
 right
 rt
+RT
 run
 s
 said
@@ -2554,6 +2557,7 @@ suggest
 sup
 sure
 t
+t.co
 take
 taken
 taking
@@ -2724,9 +2728,6 @@ yourselves
 youve
 z
 zero
-# Turkish stopwords from LUCENE-559
-# merged with the list from "Information Retrieval on Turkish Texts"
-#   (http://www.users.muohio.edu/canf/papers/JASIST2008offPrint.pdf)
 acaba
 altmış
 altı

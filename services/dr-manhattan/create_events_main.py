@@ -18,13 +18,13 @@ def create_events(host, ts_start, ts_end, kafka_url, kafka_topic):
        '{}geocoder/forward-geo'.format(api_path))
     lp_n = Loopy('{}aggregateClusters'.format(api_path), query_params)
 
-    print "getting aggregate clusters"
-    while True:
-        page = lp_n.get_next_page()
-        if page is None:
-            break
-        for doc in page:
-            com.add_node(doc)
+    #print "getting aggregate clusters"
+    #while True:
+    #    page = lp_n.get_next_page()
+    #    if page is None:
+    #        break
+    #    for doc in page:
+    #        com.add_node(doc)
 
     nodes_to_add = set()
     lp_e = Loopy('{}clusterLinks'.format(api_path), query_params)
@@ -47,7 +47,7 @@ def create_events(host, ts_start, ts_end, kafka_url, kafka_topic):
         node = requests.get(agg_url).json()
         com.add_node(node)
 
-    print "saving communities"
+    print " communities"
     l_com = com.save_communities()
     print "Communities Saved!"
     if kafka_url is not None and kafka_topic is not None:

@@ -50,7 +50,7 @@ class Worker(object):
             process_func(key, job)
         except Exception as e:
             job['state'] = 'error'
-            job['error'] = e.message
+            job['error'] = e
             print(e)
         # when done, update job
         self.send.hmset(key, job)

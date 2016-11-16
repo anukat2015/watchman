@@ -3,6 +3,7 @@ from hashtag_similarity import HashtagClusters
 sys.path.append(os.path.join(os.path.dirname(__file__), "../util"))
 from redis_dispatcher import Dispatcher
 from loopy import Loopy
+import requests
 
 def set_err(job, msg):
     job['state'] = 'error'
@@ -60,7 +61,7 @@ def process_message(key, job):
             "property_name": "lang",
             "query_value": job['lang']
         })
-    loopy = Loopy(job['query_url'], query_params)
+    loopy = Loopy(job['query_url'], query_params, paging=False)
 
     if loopy.result_count == 0:
         print "No data to process"
@@ -70,13 +71,19 @@ def process_message(key, job):
         return
 
     while True:
-        print "Scrolling...{}".format(loopy.current_page)
-        page = loopy.get_next_page()
+        print "Scrolling...{}".format(loopy.total_returned)
+        page = loopy.get_next_block()
         if page is None:
             break
         # Do something with the obtained page
         for doc in page:
             hash_clust.process_vector(doc['id'], doc['post_id'], doc['hashtags'])
+
+    if 'TRUNCATE_POSTS' in os.environ and os.environ['TRUNCATE_POSTS'] is '1':
+        print 'Truncating posts...'
+        delete_noise(hash_clust.get_deletable_ids(), job)
+    else:
+        print 'Skipping truncate posts because TRUNCATE_POSTS env var is not set...'
 
     print 'FINISHED SIMILARITY PROCESSING'
     for k, v in hash_clust.get_clusters().iteritems():
@@ -99,6 +106,10 @@ def process_message(key, job):
     else: # no errors
         job['data'] = hash_clust.to_json()
         job['state'] = 'processed'
+
+
+def delete_noise(noise_clusters, job):
+    requests.request("POST", "{}{}".format(job['query_url'], "destroy"), json={'ids': noise_clusters})
 
 if __name__ == '__main__':
     dispatcher = Dispatcher(redis_host='redis',

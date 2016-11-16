@@ -40,10 +40,12 @@ class SentimentFilter:
 
     def pres_tokenize(self, caption, lang):
         if lang=='en':
-            caption = re.sub('[\s#]',' ',caption.lower(),flags=re.UNICODE)
+            caption = re.sub('[\s]',' ',caption.lower(),flags=re.UNICODE)
+            caption = re.sub('[#]', ' #',caption,flags=re.UNICODE)
             return filter(lambda x: x!='', caption.strip().split(' '))
         elif lang=='ar':
             try:
+                caption = re.sub('[#]', ' #',caption,flags=re.UNICODE)
                 return filter(lambda x: len(x)>1, Text(caption).words)
             except:
                 print caption

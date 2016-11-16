@@ -31,15 +31,17 @@ class Louvaine:
     def add_edge(self, c_link):
         self.graph.add_edge(c_link['source'], c_link['target'], {'weight':c_link['weight']})
 
-    def get_text_sum(self, cluster):
+    def get_text_sum(self, cluster, r_o):
         n_posts = len(cluster['similar_post_ids'])
         l_sample = cluster['similar_post_ids']
         if n_posts > 50:
             l_sample = sample(cluster['similar_post_ids'], 50)
+            n_posts = 50
 
         words = {}
         places = []
         websites = set([])
+        r_o["campaigns"]["total"] += n_posts
 
         #TODO: fix query type once S.L. is fixed
         for id in l_sample:
@@ -54,6 +56,14 @@ class Louvaine:
 
             for doc in page:
                 r = requests.post(self.ent_url, data={'text':doc['text']})
+
+                if 'campaigns' in doc:
+                    for cam in doc['campaigns']:
+                        if cam in r_o["campaigns"]["ids"]:
+                            r_o["campaigns"]["ids"][cam] += 1
+                        else:
+                            r_o["campaigns"]["ids"][cam] = 1
+
                 for res in r.json():
                     if res['tag'] != 'LOCATION':
                         continue
@@ -63,18 +73,55 @@ class Louvaine:
                         break
 
                 for word in [w for w in self.sf.pres_tokenize(doc['text'], doc['lang']) if w not in self.stop]:
-                    if (word[:4]=='http') or word[:3]=='www':
+                    if word[0] == '#':
+                        continue
+                    if word[:4]=='http':
                         websites.add(word)
+                    if word[:3]=='www':
+                        websites.add('http://' + word)
                     if word in words:
                         words[word] += 1
                     else:
                         words[word] = 1
                 break
 
-        words = {key:value for key, value in words.iteritems() if value > 5}
+        for k, v in words.iteritems():
+            if v < 5:
+                continue
+            if v in r_o['keywords']:
+                r_o['keywords'][k] += v
+            else:
+                r_o['keywords'][k] = v
 
+        for place in places:
+            place_name = ''
+            weight = 0.0
+            if 'city' in place.keys():
+                place_name = place['city'] + ' '
+                weight += 1
+            if 'state' in place.keys():
+                place_name += place['state'] + ' '
+                weight += .1
+            if 'country' in place.keys():
+                place_name += ' ' + place['country'] + ' '
+                weight += .05
+            if place_name in r_o['location']:
+                r_o['location'][place_name]['weight'] += weight
+            else:
+                r_o['location'][place_name] = {
+                    "type":"inferred point",
+                    "geo_type":"point",
+                    "coords":[{
+                        "lat": place['latitude'],
+                        "lng":place['longitude']}
+                    ],
+                    "weight":weight
+                }
 
-        return (words, places, list(websites))
+        for url in list(websites):
+            r_o['urls'].add(url)
+
+        return None
 
 
     def get_img_sum(self, cluster):
@@ -103,7 +150,6 @@ class Louvaine:
 
         return imgs
 
-
     def get_communities(self):
         partition = community.best_partition(self.graph)
         d1 = {}
@@ -126,6 +172,7 @@ class Louvaine:
                     'aggregate_cluster_ids':[n],
                     'hashtags':{},
                     'keywords':{},
+                    'campaigns':{"total":0, 'ids':{}},
                     'urls':set([]),
                     'image_urls':[],
                     'location':{},
@@ -136,43 +183,14 @@ class Louvaine:
             if clust['data_type'] == 'hashtag':
                 d1[com]['hashtags'][clust['term']] = len(clust['similar_post_ids'])
                 images |= self.get_img_sum(clust)
+                #Add full text analysis, many communities have no image/text nodes
+                self.get_text_sum(clust, d1[com])
+
             elif clust['data_type'] == 'image':
                 images |= self.get_img_sum(clust)
             elif clust['data_type'] == 'text':
                 images |= self.get_img_sum(clust)
-                word_sum, places, websites = self.get_text_sum(clust)
-
-                for k, v in word_sum.iteritems():
-                    if k in d1[com]['keywords']:
-                        d1[com]['keywords'][k] += v
-                    else:
-                        d1[com]['keywords'][k] = v
-                for site in websites:
-                    d1[com]['urls'].add(site)
-                for place in places:
-                    place_name = ''
-                    weight = 0.0
-                    if 'city' in place.keys():
-                        place_name = place['city'] + ' '
-                        weight += 1
-                    if 'state' in place.keys():
-                        place_name += place['state'] + ' '
-                        weight += .1
-                    if 'country' in place.keys():
-                        place_name += ' ' + place['country'] + ' '
-                        weight += .05
-                    if place_name in d1[com]['location']:
-                        d1[com]['location'][place_name]['weight'] += weight
-                    else:
-                        d1[com]['location'][place_name] = {
-                            "type":"inferred point",
-                            "geo_type":"point",
-                            "coords":[{
-                                "lat": place['latitude'],
-                                "lng":place['longitude']}
-                            ],
-                            "weight":weight
-                        }
+                self.get_text_sum(clust, d1[com])
 
             d1[com]['image_urls'] = list(set(d1[com]['image_urls']) |images)
 
@@ -184,6 +202,12 @@ class Louvaine:
 
         #Cleanup -> transform dicst to order lists, sets to lists for easy javascript comprehension
         for com in d1.keys():
+            l_camps = []
+            if d1[com]['campaigns']['total'] != 0:
+                l_camps = [{k:1.*v/float(d1[com]['campaigns']['total'])} for k, v in d1[com]['campaigns']['ids'].iteritems()]
+
+            d1[com]['campaigns'] = l_camps
+
             l_tags = map(lambda x: x[0], sorted([(k, v) for k, v in d1[com]['hashtags'].iteritems()], key=lambda x: x[1]))
             if len(l_tags) > 10:
                 d1[com]['hashtags'] = l_tags[:10]
