@@ -52,6 +52,7 @@ function afterFetch(key, job) {
         job.state = 'processed';
         job.data = JSON.stringify([]);
       } else {
+        console.error('err:', err.message);
         job.state = 'error';
         job.error = err.toString();
         // job.data = [];

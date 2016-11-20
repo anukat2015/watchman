@@ -5,6 +5,10 @@
 // returns custom exceptions so caller can distinguish between expected
   // problems like timeouts, unspecified domains, and unexpected errors.
 
+// http://stackoverflow.com/questions/24320578/node-js-get-request-etimedout-esockettimedout/37946324#37946324
+// ESOCKETTIMEDOUT or ETIMEDOUT due to DNS lookups in Node
+process.env.UV_THREADPOOL_SIZE = 128;
+
 const trumpet = require('trumpet'),
   request = require('request'),
   fs = require('fs'),
@@ -13,17 +17,25 @@ const trumpet = require('trumpet'),
   uuid = require('uuid'),
   through2 = require('through2'),
   FetchException = require('./fetch-exception'),
-  requestOptions = {
-    timeout: 5000, //ms
-    maxRedirects: 2
-  };
+  debug = require('debug')
+  ;
 
 // require('request').debug = true
+
+// per module's docs, 'pool' settings should be at module level when
+// looping or concurrent processing
+require('request').defaults = {
+  timeout: 10000, //ms
+  maxRedirects: 2,
+  forever: false,
+  pool: { maxSockets: Infinity }
+};
 
 module.exports = { fetchImage };
 
 // callback: function(err, data)
 function fetchImage(url, downloadPath, callback) {
+  debug('fetchImage:start')(url);
   if (!validUrl(url)) {
     return callback(new FetchException(`skipping ${url}`));
   }
@@ -51,21 +63,23 @@ function fetchImage(url, downloadPath, callback) {
   })
   .pipe(findImageUrl())
     .on('error', callback)
-  .pipe(downloadImage(downloadPath))
+  .pipe(downloadImage(downloadPath, url))
     .on('error', callback)
     .on('data', data => {
+      // return final result
       callback(null, data.toString());
     });
 
   // 2) Start the pipeline
-  require('request').get(url, requestOptions)
+  require('request')
+  .get(url)
   .on('response', function(res) {
     if (res.statusCode > 399)
       callback(new FetchException(`statuscode ${res.statusCode} for ${url}`));
   })
   .on('error', err => {
-    console.error('get url err:', err);
-    callback(new FetchException(`failed to get ${url}`));
+    debug('fetchImage:error')(url, err);
+    callback(new FetchException(`failed to get ${url} - ${err}`));
   })
   .pipe(tr);
 }
@@ -91,20 +105,21 @@ function validUrl(url) {
   /twitter\.com/i.test(url)
 }
 
-function downloadImage(downloadPath) {
+function downloadImage(downloadPath, origUrl) {
   // all downloads expected to be jpeg format
   let imagePath = path.join(downloadPath, uuid.v4() + '.jpg');
 
   return through2((chunk, enc, cb) => {
     let imageUrl = chunk.toString(),
       ws = fs.createWriteStream(imagePath);
-    require('request').get(imageUrl, requestOptions)
+    require('request')
+    .get(imageUrl)
     .on('response', function(res) {
       if (res.statusCode > 399)
         cb(new FetchException(`statuscode ${res.statusCode} for ${imageUrl}`));
     })
     .on('error', err => {
-      console.error('download err:', err);
+      debug('downloadImage:error')(imageUrl, origUrl, err);
       // del empty files
       fs.unlinkSync(imagePath);
       cb(new FetchException(`failed to download ${imageUrl}`));
@@ -130,7 +145,7 @@ function downloadImage(downloadPath) {
 
 if (require.main === module) {
   // fetchImage('https://www.instagram.com/p/BJsmWmLDiD3/', './tmp', console.log)
-  // fetchImage('https://www.facebook.com/photo.php?fbid=10157557232495468', './tmp', console.log)
-  fetchImage('https://twitter.com/Abizy_m/status/775762443817607170', './tmp', console.log)
+  fetchImage('https://www.facebook.com/photo.php?fbid=10157557232495468', './tmp', console.log)
+  // fetchImage('https://twitter.com/Abizy_m/status/775762443817607170', './tmp', console.log)
   // fetchImage('https://www.swarmapp.com/c/8Ez3xo3RtcP')
 }
