@@ -35,7 +35,6 @@ module.exports = { fetchImage };
 
 // callback: function(err, data)
 function fetchImage(url, downloadPath, callback) {
-  debug('fetchImage:start')(url);
   if (!validUrl(url)) {
     return callback(new FetchException(`skipping ${url}`));
   }
@@ -45,6 +44,8 @@ function fetchImage(url, downloadPath, callback) {
 
   downloadPath = downloadPath || '.';
   mkdirp(downloadPath);
+  // 511 decimal == 0777 octal
+  fs.chmodSync(downloadPath, 511);
 
   // 1) Set up html parser + attach pipes:
   // outer: for a non-enclosing tag like meta.
@@ -78,7 +79,6 @@ function fetchImage(url, downloadPath, callback) {
       callback(new FetchException(`statuscode ${res.statusCode} for ${url}`));
   })
   .on('error', err => {
-    debug('fetchImage:error')(url, err);
     callback(new FetchException(`failed to get ${url} - ${err}`));
   })
   .pipe(tr);
@@ -101,6 +101,12 @@ function findImageUrl() {
 }
 
 function validUrl(url) {
+  // catch bogus concatenated urls like 'http://foo.com,http://bar.com'
+  // TODO: why not caught somewhere upstream?
+  let parts = url.split(',');
+  if (parts.length > 1)
+    return false;
+
   return /instagram\.com/i.test(url) ||
   /twitter\.com/i.test(url)
 }
@@ -119,13 +125,13 @@ function downloadImage(downloadPath, origUrl) {
         cb(new FetchException(`statuscode ${res.statusCode} for ${imageUrl}`));
     })
     .on('error', err => {
-      debug('downloadImage:error')(imageUrl, origUrl, err);
       // del empty files
       fs.unlinkSync(imagePath);
       cb(new FetchException(`failed to download ${imageUrl}`));
     })
     .on('end', () => {
-      try { // seems that request errors still emit 'end'. so file might not exist.
+      // seems that request errors still emit 'end'. so file might not exist.
+      try {
         // del empty files
         let stats = fs.statSync(imagePath);
         if (!stats.size)
