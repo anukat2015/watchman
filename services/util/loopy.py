@@ -86,10 +86,7 @@ class Loopy:
             return None
 
         # 1st page must be leading-inclusive
-        if self.current_page == 0:
-            op = 'gte'
-        else:
-            op = 'gt'
+        op = 'gt' if (self.current_page > 0) else 'gte'
 
         query_string = self.get_query_string() + \
            'filter[where][id][{}]={}&filter[limit]={}&filter[order]={}'.format(
@@ -107,14 +104,22 @@ class Loopy:
         self.total_returned += len(result)
         return result
 
+    '''
+    Send JSON data using specified http method (not just a POST).
+    If url starts with '/', append to query_url.
+    '''
     def post_result(self, url, json, method='POST'):
-        ''' Handles POST or PUT requests '''
+        if url.startswith('/'):
+            url = self.query_url + url[1:]
+
         result = requests.request(method, url, json=json)
         if result.status_code != 200:
             print(result.content)
             raise Exception('POST to {} failed: {}'.format(
                 url,
                 result.content))
+        else:
+            return result.content
 
 if __name__ == '__main__':
     query_params = [{

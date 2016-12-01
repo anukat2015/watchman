@@ -8,9 +8,7 @@
 # publish similarity 1
 
 import sys, os
-import requests
 from feature_similarity import FeatureSimilarity
-
 sys.path.append(os.path.join(os.path.dirname(__file__), '../util'))
 from redis_dispatcher import Dispatcher
 from loopy import Loopy
@@ -76,7 +74,7 @@ def process_message(key, job):
 
     if 'TRUNCATE_POSTS' in os.environ and os.environ['TRUNCATE_POSTS'] is '1':
         print 'Truncating posts...'
-        delete_noise(feature_similarity.get_clusters_to_delete(), job)
+        delete_noise(feature_similarity.get_clusters_to_delete())
     else:
         print 'Skipping truncate posts because TRUNCATE_POSTS env var is not set...'
 
@@ -91,11 +89,11 @@ def process_message(key, job):
     job['state'] = 'processed'
 
 
-def delete_noise(noise_clusters, job):
+def delete_noise(noise_clusters):
     deletable_ids = []
     for delete_cluster in noise_clusters:
         deletable_ids.extend(delete_cluster.similar_ids)
-    requests.request("POST", "{}{}".format(job['query_url'], "destroy"), json={'ids': deletable_ids})
+    loopy.post_result('/destroy', {'ids': deletable_ids})
 
 if __name__ == '__main__':
     dispatcher = Dispatcher(redis_host='redis', process_func=process_message,
