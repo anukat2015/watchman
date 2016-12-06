@@ -23,8 +23,8 @@ module.exports = runJob;
 // start if run as a worker process
 if (require.main === module) {
   const defaults = {
-    seedTime: 1478296649899,
-    runIntervalMins: 10,
+    seedTime: 1481045640692 - (10 * 60 * 1000),
+    runIntervalMins: 1,
     querySpanMins: 10,
     minPostsCount: 0
   };
@@ -64,8 +64,7 @@ function runJob(params) {
   let endTime = params.seedTime,
     runIntervalMins = params.runIntervalMins,
     querySpanMins = params.querySpanMins,
-    minPostsCount = params.minPostsCount
-  ;
+    minPostsCount = params.minPostsCount;
 
   setInterval(run, 1000 * 60 * runIntervalMins);
 
@@ -75,17 +74,18 @@ function runJob(params) {
     let startTime = endTime + 1,
       span = 1000 * 60 * querySpanMins;
 
-    if ((endTime + span) > Date.now()) {
+    /*if ((endTime + span) > Date.now()) {
       console.log('endtime > now. wait til next run in %s sec', Math.floor((endTime + span - Date.now()) / 1000));
       return
-    }
+    }*/
 
     endTime += span;
 
     let jobMonitorParams = {
       featurizer: params.featurizer,
       start_time: startTime,
-      end_time: endTime
+      end_time: endTime,
+      run_set_id: startTime.toString() + endTime.toString()
     };
 
     if (params.service_args)

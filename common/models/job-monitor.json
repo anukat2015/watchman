@@ -23,6 +23,11 @@
     "DestroyAll": {}
   },
   "properties": {
+    "run_set_id":{
+      "type":"string",
+      "required": true,
+      "description": "Used to match up all job monitors run for a specific time window"
+    },
     "start_time": {
       "type": "number",
       "required": true,
@@ -48,6 +53,10 @@
     "done_at": {
       "type": "date"
     },
+    "run_attempt_count": {
+      "type": "number",
+      "default":0
+    },
     "error_msg": {
       "type": "string"
     },
@@ -55,7 +64,7 @@
       "type": "boolean",
       "required": true,
       "description": "trigger the monitoring process",
-      "default": true
+      "default": false
     },
     "service_args": {
       "type": "object",

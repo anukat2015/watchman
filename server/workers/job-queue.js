@@ -14,6 +14,7 @@ const app = require('../server'),
   AggregateMonitor = require('../../lib/job-monitors/aggregate-monitor'),
   LinkerMonitor = require('../../lib/job-monitors/linker-monitor'),
   createLinkerMonitor = require('../../lib/job-monitors/create-linker-monitor'),
+  timelineMonitor = require('../../lib/job-monitors/job-timeline-monitor'),
   workerConcurrency = process.env.WORKER_CONCURRENCY || 4
 ;
 
@@ -27,6 +28,10 @@ if (require.main === module)
 
 function start() {
   const queue = jobs.queue;
+
+  //monitor and keep our running jobs in line with time and number of social media posts
+  timelineMonitor.start(app);
+
   // let's run linkermonitor creation in this worker too
   createLinkerMonitor.start(app);
 
