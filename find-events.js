@@ -19,8 +19,8 @@ module.exports = findEvents;
 // start if run as a worker process
 if (require.main === module) {
   const defaults = {
-    seedTime: 1478278060490,
-    runIntervalMins: 10
+    seedTime: 1481045640692 - (10 * 60 * 1000),
+    runIntervalMins: 120
   };
 
   findEvents(defaults);
@@ -49,7 +49,7 @@ function findEvents(params) {
     }
 
 
-    let args = ['run', '--rm', 'sotera/dr-manhattan:6', API_ROOT, startTime.toString(), endTime.toString()];
+    let args = ['run', '--rm', 'sotera/dr-manhattan:12', API_ROOT, startTime.toString(), endTime.toString()];
     console.log('running: docker', args.join(' '));
 
     let job = spawn('docker', args);

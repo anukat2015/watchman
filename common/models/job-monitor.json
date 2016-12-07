@@ -25,7 +25,6 @@
   "properties": {
     "run_set_id":{
       "type":"string",
-      "required": true,
       "description": "Used to match up all job monitors run for a specific time window"
     },
     "start_time": {
@@ -41,6 +40,10 @@
     "featurizer": {
       "type": "string",
       "required": true
+    },
+    "priority":{
+      "type":"string",
+      "default":"normal"
     },
     "lang": {
       "type": "string"

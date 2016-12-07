@@ -46,8 +46,11 @@ module.exports = function(JobMonitor) {
 
   function createJob(jobMonitor) {
     jobs.create('job monitor', {
-      jobMonitorId: jobMonitor.id
+      jobMonitorId: jobMonitor.id,
+      priority:jobMonitor.priority
     });
+
+    jobMonitor.updateAttribute("state", "started");
   }
 
   function removeClusters(jobMonitor) {
