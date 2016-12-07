@@ -9,7 +9,7 @@
 #   See configure_gpu.sh for more details and:
 #   https://github.com/NVIDIA/nvidia-docker/wiki/Deploy-on-Amazon-EC2
 #   https://developer.nvidia.com/cuda-downloads
-    
+
 FROM sotera/ubuntu-cudnn5:1.0
 
 USER root
@@ -90,4 +90,4 @@ USER caffe-user
 
 ENV CAFFE_ROOT /home/caffe-user/caffe
 
-CMD ["python", "-u", "caffe_redis_client.py"]
+CMD ["python", "-u", "main.py"]

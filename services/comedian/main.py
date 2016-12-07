@@ -3,7 +3,6 @@ from hashtag_similarity import HashtagClusters
 sys.path.append(os.path.join(os.path.dirname(__file__), "../util"))
 from redis_dispatcher import Dispatcher
 from loopy import Loopy
-import requests
 
 def set_err(job, msg):
     job['state'] = 'error'
@@ -78,9 +77,9 @@ def process_message(key, job):
         for doc in page:
             hash_clust.process_vector(doc['id'], doc['post_id'], doc['hashtags'])
 
-    if 'TRUNCATE_POSTS' in os.environ and os.environ['TRUNCATE_POSTS'] is '1':
+    if 'TRUNCATE_POSTS' in os.environ and os.environ['TRUNCATE_POSTS'] == '1':
         print 'Truncating posts...'
-        delete_noise(hash_clust.get_deletable_ids(), job)
+        print delete_noise(hash_clust.get_deletable_ids(), loopy)
     else:
         print 'Skipping truncate posts because TRUNCATE_POSTS env var is not set...'
 
@@ -107,8 +106,8 @@ def process_message(key, job):
         job['state'] = 'processed'
 
 
-def delete_noise(noise_clusters, job):
-    requests.request("POST", "{}{}".format(job['query_url'], "destroy"), json={'ids': noise_clusters})
+def delete_noise(noise_clusters, loopy):
+    return loopy.post_result('/destroy', {'ids': noise_clusters})
 
 if __name__ == '__main__':
     dispatcher = Dispatcher(redis_host='redis',

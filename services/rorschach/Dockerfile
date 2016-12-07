@@ -22,4 +22,4 @@ COPY util /usr/src/util
 
 ENV TERM=xterm
 
-CMD ["python", "-u", "apply_word2vec.py", "-englishModel", "Aug09_en", "-arabicModel", "Aug09_ar", "-modelPath", "./models/"]
+CMD ["python", "-u", "main.py", "-englishModel", "Aug09_en", "-arabicModel", "Aug09_ar", "-modelPath", "./models/"]

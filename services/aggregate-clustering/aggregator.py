@@ -47,7 +47,7 @@ def process(job):
                     agg_cluster['posts_clusters_ids']= list(filter(None.__ne__, set(agg_cluster['posts_clusters_ids'])))
 
                     aggregate_clusters_loopy.post_result(
-                        url='{}/{}'.format(job['result_url'], agg_cluster['id']),
+                        url='/{}'.format(agg_cluster['id']),
                         json={
                             'average_similarity_vector': agg_cluster['average_similarity_vector'],
                             'end_time_ms': agg_cluster['end_time_ms'],
@@ -61,7 +61,7 @@ def process(job):
                 # no 'open' aggregate_clusters, or this postscluster didn't match
                 # any aggregates
                 aggregate_clusters_loopy.post_result(
-                    url=job['result_url'],
+                    url='/',
                     json={
                         'start_time_ms': posts_cluster['start_time_ms'],
                         'end_time_ms': posts_cluster['end_time_ms'],
@@ -102,7 +102,7 @@ def shut_down_aggregates(job):
             cutoff_time_ms = int(job['end_time_ms']) - int(job['max_time_lapse_ms'])
             if int(agg_cluster['end_time_ms']) < cutoff_time_ms:
                 loopy.post_result(
-                    url='{}/{}'.format(job['result_url'], agg_cluster['id']),
+                    url='/{}'.format(agg_cluster['id']),
                     json={'state': 'closed'},
                     method='PUT'
                 )
@@ -149,9 +149,7 @@ def get_aggregate_clusters_loopy(job):
             'query_value': job['lang']
         })
 
-    loopy = Loopy(job['result_url'], query_params)
-
-    return loopy
+    return Loopy(job['result_url'], query_params)
 
 def get_aggregate_clusters(loopy):
     aggregate_clusters = []
@@ -173,9 +171,7 @@ def get_posts_clusters_loopy(job):
         'query_value': job['job_id']
     }]
 
-    loopy = Loopy(job['query_url'], query_params)
-
-    return loopy
+    return Loopy(job['query_url'], query_params)
 
 
 if __name__ == '__main__':

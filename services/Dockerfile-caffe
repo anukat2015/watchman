@@ -80,4 +80,4 @@ USER caffe-user
 
 ENV CAFFE_ROOT /home/caffe-user/caffe
 
-CMD ["python", "-u", "caffe_redis_client.py"]
+CMD ["python", "-u", "main.py"]
