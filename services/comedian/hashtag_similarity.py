@@ -25,7 +25,7 @@ class HashtagClusters:
         },
         {
             "query_type":"where",
-            "property_name":"data_type",
+            "property_name":"featurizer",
             "query_vale":"hashtag"
         },
         {
