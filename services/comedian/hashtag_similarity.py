@@ -17,8 +17,6 @@ class HashtagClusters:
         self.l_thresh = likelihood_threshold
 
     def get_priors(self, term):
-        if term == 'risingstorm2':
-            print "hello"
         q_start_time = self.start_ms - self.prior_ms
         query_params = [{
             "query_type":"where",
@@ -51,8 +49,6 @@ class HashtagClusters:
 
     def process_vector(self, vector_id, post_id, vector):
         self.total_posts += 1
-        if self.total_posts  == 41:
-            print "hello"
         for term in vector:
             try:
                 tl = term.lower()
