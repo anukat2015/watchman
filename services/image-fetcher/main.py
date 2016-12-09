@@ -36,3 +36,8 @@ if __name__ == '__main__':
                             process_func=process_message,
                             channels=['genie:threat-detection'])
     dispatcher.start()
+
+# cli
+#redis-cli
+#hmset 123 archive_url https://s3.amazonaws.com/watchman/threat-detection-test.zip
+#publish 123
